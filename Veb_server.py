@@ -15,27 +15,37 @@ def setup_htpasswd():
         if not os.path.exists(htpasswd_path):
             open(htpasswd_path, 'a').close()
         return HtpasswdFile(htpasswd_path)
-    except IOError as ioe:
-        #Обработка ошибки ввода-вывода при чтении файла
-        print("I/O error when reading htpasswd file:", ioe)
+     # Обработка ошибки отсутствия файла, ошибки ввода-вывода или ошибки доступа
+    except (FileNotFoundError, IOError, PermissionError) as e:
+        print(f"Error accessing the file or I/O while reading the htpasswd file:", {e})
+        return None
+    except OSError as e:
+        #Обработка ошибок операционной системы
+        print(f"Operating system error: {e}")
         return None
     
 @auth.verify_password
 def verify_password(username, password):
     htpasswd = setup_htpasswd()
     if htpasswd:
-        return htpasswd.check_password(username, password)
+        try:
+            return htpasswd.check_password(username, password)
+        except KeyError:
+            #Обработка отсутствия ключа (Имени пользователя в файле htpasswd)
+            print(f"username '{username}' not found in the htpasswd file")
+            return False
     return False
 
 @app.route('/upload', methods=['POST'])
 @auth.login_required
 def upload_file():
     try:
-        if 'file' not in request.files:
-            raise ValueError("The file was not attached to the request")
-        
+        # Попытка получить файл из запроса
         file = request.files['file']
-        
+    except KeyError:
+        #Обработка отсутствия ключа (файла) в запросе
+        return jsonify({"error": "The file was not attached to the request"}), 400
+    try:
         if file.filename == '':
             raise ValueError("The file name is empty")
         
@@ -44,6 +54,8 @@ def upload_file():
         return jsonify({"message": "The file has been uploaded successfully!"})
     except ValueError as ve:
         return jsonify({"error": str(ve)}), 400  # Плохой запрос
+    except AttributeError as ae:
+        return jsonify({"error": str(e)}), 500 #Внутренняя ошибка сервера
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
