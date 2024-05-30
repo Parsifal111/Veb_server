@@ -1,5 +1,6 @@
 import argparse
 import os
+import HTTPException
 from flask import Flask, request, jsonify
 from flask_httpauth import HTTPBasicAuth
 from werkzeug.utils import secure_filename
@@ -56,20 +57,25 @@ def upload_file():
         return jsonify({"error": str(ve)}), 400  # Плохой запрос
     except AttributeError as ae:
         return jsonify({"error": str(e)}), 500 #Внутренняя ошибка сервера
+    except HTTPException as he:
+         return jsonify({"error": str(he)}), he.code  # Обработка HTTP исключения
+    except RuntimeError as re:
+        return jsonify({"error": str(re)}), 500  # Обработка RuntimeError
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Web server')
-    parser.add_argument('-p', '--port', type=int, default=5000, help='The port for starting the server (by default 5000)')
-    parser.add_argument('-d', '--directory', type=str, default='uploads', help='The directory for uploading files (by default "uploads")')
-    parser.add_argument('-f', '--htpasswd', type=str, default='htpasswd', help='The path to the file htpasswd (by default "htpasswd")')
-    args = parser.parse_args()
+    try:
+        parser = argparse.ArgumentParser(description='Web server')
+        parser.add_argument('-p', '--port', type=int, default=5000, help='The port for starting the server (by default 5000)')
+        parser.add_argument('-d', '--directory', type=str, default='uploads', help='The directory for uploading files (by default "uploads")')
+        parser.add_argument('-f', '--htpasswd', type=str, default='htpasswd', help='The path to the file htpasswd (by default "htpasswd")')
+        args = parser.parse_args()
+    except argparse.ArgumentError as ae:
+        print(f"Error processing command line arguments: {ae}")
 
     app.config['UPLOAD_FOLDER'] = args.directory
     app.config['HTPASSWD_PATH'] = args.htpasswd
 
-    if not os.path.exists(app.config['UPLOAD_FOLDER']):
-        os.makedirs(app.config['UPLOAD_FOLDER'])
-
     app.run(debug=True, port=args.port)
+
