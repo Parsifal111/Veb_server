@@ -1,16 +1,14 @@
 # Veb_server
-Этот проект представляет собой веб-сервер для загрузки файлов с базовой аутентификацией HTTP. Он позволяет пользователям загружать файлы на сервер через веб-интерфейс. Для обеспечения безопасности доступа к серверу используется аутентификация HTTP, а пароли пользователей хранятся в файле htpasswd.
+This project is a web server for file upload with basic HTTP authentication. It allows users to upload files to the server via a web interface. To ensure secure access to the server, HTTP authentication is used, and user passwords are stored in the htpasswd file.
 
-Основные функции:
+Main features:
 
-1. **Загрузка файлов**: Пользователи могут загружать файлы на сервер через веб-интерфейс.
-2. **Базовая аутентификация HTTP**: Для доступа к серверу требуется аутентификация с использованием имени пользователя и пароля, которые хранятся в файле htpasswd.
-3. **Обработка ошибок и исключений**: Проект обрабатывает различные ошибки и исключения, такие как отсутствие файла, пустое имя файла и другие, чтобы обеспечить стабильную работу приложения.
+File upload: Users can upload files to the server via the web interface.
+Basic HTTP authentication: Access to the server requires authentication using a username and password stored in the htpasswd file.
+Error and exception handling: The project handles various errors and exceptions, such as missing files, empty file names, and others, to ensure stable application operation.
+Launch parameters:
 
-Параметры запуска:
-
-- `-p` или `--port`: порт, на котором будет запущен сервер (по умолчанию 5000).
-- `-d` или `--directory`: директория, в которую будут загружены файлы (по умолчанию "uploads").
-- `-f` или `--htpasswd`: путь к файлу htpasswd, в котором хранятся пользователи и их пароли (по умолчанию "htpasswd").
-
-Этот проект может быть полезен для создания простого и безопасного веб-сервера для загрузки файлов с аутентификацией.
+-p or --port: the port on which the server will be running (default is 5000).
+-d or --directory: the directory to which files will be uploaded (default is "uploads").
+-f or --htpasswd: the path to the htpasswd file where users and their passwords are stored (default is "htpasswd").
+This project can be useful for creating a simple and secure web server for file upload with authentication.
