@@ -1,8 +1,8 @@
 import argparse
+import os
 from flask import Flask, request, jsonify
 from flask_httpauth import HTTPBasicAuth
 from werkzeug.utils import secure_filename
-import os 
 from passlib.apache import HtpasswdFile
 
 app = Flask(__name__)
@@ -10,15 +10,22 @@ auth = HTTPBasicAuth()
 
 @app.before_first_request
 def setup_htpasswd():
-    global htpasswd
     htpasswd_path = app.config['HTPASSWD_PATH']
-    if not os.path.exists(htpasswd_path):
-        open(htpasswd_path, 'a').close()
-    htpasswd = HtpasswdFile(htpasswd_path)
-
+    try:
+        if not os.path.exists(htpasswd_path):
+            open(htpasswd_path, 'a').close()
+        return HtpasswdFile(htpasswd_path)
+    except IOError as ioe:
+        #Обработка ошибки ввода-вывода при чтении файла
+        print("I/O error when reading htpasswd file:", ioe)
+        return None
+    
 @auth.verify_password
 def verify_password(username, password):
-    return htpasswd.check_password(username, password)
+    htpasswd = setup_htpasswd()
+    if htpasswd:
+        return htpasswd.check_password(username, password)
+    return False
 
 @app.route('/upload', methods=['POST'])
 @auth.login_required
@@ -54,4 +61,3 @@ if __name__ == '__main__':
         os.makedirs(app.config['UPLOAD_FOLDER'])
 
     app.run(debug=True, port=args.port)
-
