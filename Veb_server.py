@@ -25,16 +25,16 @@ def verify_password(username, password):
 def upload_file():
     try:
         if 'file' not in request.files:
-            raise ValueError("Файл не был прикреплен к запросу")
+            raise ValueError("The file was not attached to the request")
         
         file = request.files['file']
         
         if file.filename == '':
-            raise ValueError("Имя файла пустое")
+            raise ValueError("The file name is empty")
         
         filename = secure_filename(file.filename)
         file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-        return jsonify({"message": "Файл успешно загружен!"})
+        return jsonify({"message": "The file has been uploaded successfully!"})
     except ValueError as ve:
         return jsonify({"error": str(ve)}), 400  # Плохой запрос
     except Exception as e:
@@ -42,9 +42,9 @@ def upload_file():
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Web server')
-    parser.add_argument('-p', '--port', type=int, default=5000, help='Порт для запуска сервера (по умолчанию 5000)')
-    parser.add_argument('-d', '--directory', type=str, default='uploads', help='Директория для загрузки файлов (по умолчанию "uploads")')
-    parser.add_argument('-f', '--htpasswd', type=str, default='htpasswd', help='Путь к файлу htpasswd (по умолчанию "htpasswd")')
+    parser.add_argument('-p', '--port', type=int, default=5000, help='The port for starting the server (by default 5000)')
+    parser.add_argument('-d', '--directory', type=str, default='uploads', help='The directory for uploading files (by default "uploads")')
+    parser.add_argument('-f', '--htpasswd', type=str, default='htpasswd', help='The path to the file htpasswd (by default "htpasswd")')
     args = parser.parse_args()
 
     app.config['UPLOAD_FOLDER'] = args.directory
