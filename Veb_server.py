@@ -9,30 +9,31 @@ from passlib.apache import HtpasswdFile
 app = Flask(__name__)
 auth = HTTPBasicAuth()
 
-@app.before_first_request
+htpasswd = None
+
 def setup_htpasswd():
-    htpasswd_path = app.config['HTPASSWD_PATH']
-    try:
-        if not os.path.exists(htpasswd_path):
-            open(htpasswd_path, 'a').close()
-        return HtpasswdFile(htpasswd_path)
-     # Обработка ошибки отсутствия файла, ошибки ввода-вывода или ошибки доступа
-    except (FileNotFoundError, IOError, PermissionError) as e:
-        print(f"Error accessing the file or I/O while reading the htpasswd file:", {e})
-        return None
-    except OSError as e:
-        #Обработка ошибок операционной системы
-        print(f"Operating system error: {e}")
-        return None
-    
+    global htpasswd
+    if htpasswd is None:
+        htpasswd_path = app.config['HTPASSWD_PATH']
+        try:
+            if not os.path.exists(htpasswd_path):
+                open(htpasswd_path, 'a').close()
+            htpasswd = HtpasswdFile(htpasswd_path)
+        except (FileNotFoundError, IOError, PermissionError) as e:
+            print(f"Error accessing the file or I/O while reading the htpasswd file:", {e})
+        except OSError as e:
+            print(f"Operating system error: {e}")
+
+@app.before_request
+def before_request():
+    setup_htpasswd()
+
 @auth.verify_password
 def verify_password(username, password):
-    htpasswd = setup_htpasswd()
     if htpasswd:
         try:
             return htpasswd.check_password(username, password)
         except KeyError:
-            #Обработка отсутствия ключа (Имени пользователя в файле htpasswd)
             print(f"username '{username}' not found in the htpasswd file")
             return False
     return False
@@ -78,3 +79,4 @@ if __name__ == '__main__':
     app.config['HTPASSWD_PATH'] = args.htpasswd
 
     app.run(debug=True, port=args.port)
+
