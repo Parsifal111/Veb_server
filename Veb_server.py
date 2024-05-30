@@ -8,8 +8,13 @@ from passlib.apache import HtpasswdFile
 app = Flask(__name__)
 auth = HTTPBasicAuth()
 
-# Загрузка пользователей и паролей из файла htpasswd
-htpasswd = HtpasswdFile("/path/to/htpasswd")
+@app.before_first_request
+def setup_htpasswd():
+    global htpasswd
+    htpasswd_path = app.config['HTPASSWD_PATH']
+    if not os.path.exists(htpasswd_path):
+        open(htpasswd_path, 'a').close()
+    htpasswd = HtpasswdFile(htpasswd_path)
 
 @auth.verify_password
 def verify_password(username, password):
@@ -43,9 +48,10 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     app.config['UPLOAD_FOLDER'] = args.directory
+    app.config['HTPASSWD_PATH'] = args.htpasswd
+
     if not os.path.exists(app.config['UPLOAD_FOLDER']):
         os.makedirs(app.config['UPLOAD_FOLDER'])
-    
-    htpasswd = HtpasswdFile(args.htpasswd)
 
     app.run(debug=True, port=args.port)
+
