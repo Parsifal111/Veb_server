@@ -1,8 +1,8 @@
 import argparse
 import os
-import HTTPException
 from flask import Flask, request, jsonify
 from flask_httpauth import HTTPBasicAuth
+from werkzeug.exceptions import HTTPException
 from werkzeug.utils import secure_filename
 from passlib.apache import HtpasswdFile
 
@@ -78,4 +78,3 @@ if __name__ == '__main__':
     app.config['HTPASSWD_PATH'] = args.htpasswd
 
     app.run(debug=True, port=args.port)
-
